@@ -18,12 +18,33 @@ public class Main {
 
     private long windowHandle;
 
+    private Loader loader;
+    private Renderer renderer;
+
+    private RawModel model;
+    private StaticShader staticShader;
+
+    float[] vertices = {
+            -0.5f, 0.5f, 0.0f,  // Top left
+            0.5f, 0.5f, 0.0f,   // Top right
+            0.5f, -0.5f, 0.0f,  // Bottom right
+            -0.5f, -0.5f, 0.0f  // Bottom left
+    };
+
+    int[] indicies = {
+            0, 3, 1,    // Left triangle
+            3, 2, 1     // Right triangle
+    };
+
     public static void main(String[] args) {
         new Main().run();
     }
 
     public void run(){
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
+
+        loader = new Loader();
+        renderer = new Renderer();
 
         init();
         loop();
@@ -41,7 +62,7 @@ public class Main {
 
         // Invisible and resizable
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         windowHandle = glfwCreateWindow(WIDTH, HEIGHT, TITLE, NULL, NULL);
         if(windowHandle == NULL){
@@ -79,12 +100,23 @@ public class Main {
 
     public void loop(){
         GL.createCapabilities();
-        glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+        model = loader.loadToVAO(vertices, indicies);
+        staticShader = new StaticShader();
+
 
         while(!glfwWindowShouldClose(windowHandle)){
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            staticShader.start();
+            renderer.render(model);
+            staticShader.stop();
             glfwSwapBuffers(windowHandle);
             glfwPollEvents();
         }
+
+        staticShader.cleanUp();
+        loader.cleanup();
     }
 }
